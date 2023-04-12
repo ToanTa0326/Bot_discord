@@ -32,6 +32,7 @@ async def send_message(message, user_message):
     global isReplyAll
     if not isReplyAll:
         author = message.user.id
+        print(author)
         await message.response.defer(ephemeral=isPrivate)
     else:
         author = message.author.id
@@ -165,16 +166,18 @@ def run_discord_bot():
     
 
     @client.tree.command(name='sing', description="phát bài hát mới")
-    async def sing(interaction: discord.Interaction, message: str):
+    async def sing(interaction: discord.Interaction,*, message: str):
 
-        voice_channel= interaction.user.voice.channel
-        voice_client= interaction.guild.voice_client
-        
-        global vc 
-        if(not voice_client):
-            vc = await voice_channel.connect()
+        if interaction.user.voice == None:
+            await interaction.response.defer(ephemeral=False)
+            await interaction.followup.send("Bạn chưa join vào kênh voice nào")
+        else:
+            voice_channel= interaction.user.voice.channel
+            voice_client= interaction.guild.voice_client
 
-        if(vc.disconnect):
+            global vc 
+            if(not voice_client):
+                vc = await voice_channel.connect()
 
             await interaction.response.defer(ephemeral=False)
             await interaction.followup.send(f'Bài hát {message} đang phát...')
@@ -197,7 +200,7 @@ def run_discord_bot():
 
             # tên file MP4 và MP3
             mp4_file = audio_file
-            mp3_file = "D:/Documents/nam_3_ki_2/lap_trinh_phython/BTL/chatbot/src/music/song.mp3"
+            mp3_file = "D:/Documents/nam_3_ki_2/lap_trinh_phython/BTL/main/src/music/song.mp3"
 
             # tạo đối tượng audio từ tệp MP4
             audio_clip = AudioFileClip(mp4_file)
@@ -211,9 +214,6 @@ def run_discord_bot():
             source = FFmpegOpusAudio(mp3_file)
             vc.stop()
             vc.play(source)
-        else:
-            await interaction.response.defer(ephemeral=False)
-            await interaction.followup.send('Chatbot chưa join kênh voice')
 
 
     @client.tree.command(name='pause', description="tạm dừng phát bài hát hiện tại")
@@ -323,6 +323,7 @@ def run_discord_bot():
         if isReplyAll:
             if message.author == client.user:
                 return
+            print(message)
             username = str(message.author)
             user_message = str(message.content)
             channel = str(message.channel)
