@@ -24,7 +24,7 @@ def check_verion() -> None:
         if package != f'{name}=={version}':
             logger.error(f'{name} version {version} is installed but does not match the requirements')
             sys.exit()
-
+# toan test
 if __name__ == '__main__': 
     check_verion()
     bot.run_discord_bot()
