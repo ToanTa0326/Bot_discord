@@ -32,7 +32,6 @@ async def send_message(message, user_message):
     global isReplyAll
     if not isReplyAll:
         author = message.user.id
-        print(author)
         await message.response.defer(ephemeral=isPrivate)
     else:
         author = message.author.id
@@ -164,7 +163,6 @@ def run_discord_bot():
     from discord import FFmpegOpusAudio
     import youtube_dl
     
-
     @client.tree.command(name='sing', description="phát bài hát mới")
     async def sing(interaction: discord.Interaction,*, message: str):
 
@@ -235,6 +233,40 @@ def run_discord_bot():
         vc.channel.delete
         await interaction.response.defer(ephemeral=False)
         await interaction.followup.send('Bài hát hiện tại đã kết thúc')
+    
+    #chức năng sleep 
+    import datetime
+    import time
+    import math
+
+    @client.tree.command(name='sleep', description="Nhập giờ bạn muốn thức dậy")
+    async def sleep(interaction: discord.Interaction,*, message: str):
+        ss = message.split(':')
+        hour = int(ss[0])
+        minute = int(ss[1])
+
+        info = ''
+
+        # Lấy thời gian hiện tại
+        now = datetime.datetime.now()
+        info = "Bây giờ là: " + now.strftime("%H:%M:%S") +'\n'
+
+        # Tính thời gian báo thức
+        alarm_time = datetime.datetime.combine(now.date(), datetime.time(hour, minute))
+        info += "Thời gian báo thức được đặt lúc: " + alarm_time.strftime("%H:%M:%S") + '\n'
+
+        # Tính thời gian chờ đợi
+        time_diff = math.fabs((alarm_time - now).total_seconds())
+        info += "Đang chờ đợi %d giây cho đến khi báo thức kích hoạt..." % time_diff
+
+        await interaction.response.defer(ephemeral=False)
+        await interaction.followup.send(info)
+
+        # Chờ đợi cho đến khi báo thức kích hoạt
+        time.sleep(time_diff)
+
+        # Kích hoạt báo thức
+        await interaction.followup.send("Thức dậy! Đã đến giờ rồi!")
 
     #chức năng nhúng chatGPT
     @client.tree.command(name="chat", description="Have a chat with ChatGPT")
