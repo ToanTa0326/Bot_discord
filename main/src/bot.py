@@ -12,12 +12,21 @@ from tabulate import tabulate
 import pytube
 from moviepy.editor import *
 import pygame
+from datetime import datetime
+import re
 
 
 logger = log.setup_logger(__name__)
 
 isPrivate = False
 isReplyAll = False
+
+def is_valid_date(date_string):
+    try:
+        datetime.strptime(date_string, '%d/%m/%Y')
+        return True
+    except ValueError:
+        return False
 
 class aclient(commands.Bot):
     def __init__(self) -> None:
@@ -156,31 +165,20 @@ def run_discord_bot():
         response = responses.get_weather(message)
         await interaction.response.defer(ephemeral=False)
         await interaction.followup.send("Nhiệt độ " + message + " đang là: " + str(response["main"]["temp"]) + "°C")
+    
+    @client.tree.command(name="test", description="Get a list of tasks")
+    async def test(interaction: discord.Interaction):
+        print(interaction.user.id)
   
     # get Todo list
     @client.tree.command(name="todo", description="Get a list of tasks")
     async def todo(interaction: discord.Interaction):
-      response = [
-          {
-              'date': '2023-04-15',
-              'list': [
-                  {'start': '08:00', 'task': 'Task 1'},
-                  {'start': '10:00', 'task': 'Task 2'}
-              ]
-          },
-          {
-              'date': '2023-04-14',
-              'list': [
-                  {'start': '09:00', 'task': 'Task 3'},
-                  {'start': '13:00', 'task': 'Task 4'}
-              ]
-          }
-      ]
+      response = responses.get_todo_list(interaction.user.id)
       headers = ['Date', 'Start Time', 'Task']
       table = []
       prev_date = ''
       for response in response:
-        for idx, task in enumerate(response['list']):
+        for idx, task in enumerate(response['tasks']):
             date = response['date'] if idx == 0 else ''
             if date == prev_date:
                 date = ''
@@ -190,6 +188,20 @@ def run_discord_bot():
       table_str = tabulate(table, headers=headers)
       await interaction.response.defer(ephemeral=False)
       await interaction.followup.send(f'```\n{table_str}\n```', ephemeral=False)
+    
+    # Create todo
+    @client.tree.command(name="create_todo", description="Please enter: Date(DD/MM/YYYY),start(hh:mm),task(string)")
+    async def create_todo(interaction: discord.Interaction, message: str):
+      responseMessage = ""
+      try: 
+        date, start, task = message.split(',')
+
+      except:
+        await interaction.response.defer(ephemeral=False)
+        await interaction.followup.send(f'invalid', ephemeral=False)
+        
+      print(date, start, task)
+      # response = responses.create_todo(interaction.user.id)
 
 
     #chức năng phát nhạc
