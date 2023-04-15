@@ -8,8 +8,6 @@ from src import log
 import requests
 from discord.ext import commands,tasks
 
-
-
 import pytube
 from moviepy.editor import *
 import pygame
@@ -157,6 +155,19 @@ def run_discord_bot():
         response = responses.get_weather(message)
         await interaction.response.defer(ephemeral=False)
         await interaction.followup.send("Nhiệt độ " + message + " đang là: " + str(response["main"]["temp"]) + "°C")
+    
+    # render table data
+    @client.tree.command(name="table", description="content")
+    async def table(interaction: discord.Interaction,*,message: str):
+        data = [("John", "Doe", 25), ("Jane", "Doe", 30), ("Bob", "Smith", 45)]
+        await interaction.response.defer(ephemeral=False)
+        table = "```\n"
+        table += "First Name | Last Name | Age\n"
+        table += "-----------|-----------|----\n"
+        for row in data:
+          table += "{:<11}|{:<11}|{}\n".format(row[0], row[1], row[2])
+        table += "```"
+        await interaction.followup.send(table)
 
     #chức năng phát nhạc
     from discord.utils import get
