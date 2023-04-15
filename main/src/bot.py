@@ -7,7 +7,8 @@ from src import responses
 from src import log
 import requests
 from discord.ext import commands,tasks
-
+from datetime import datetime
+from tabulate import tabulate
 import pytube
 from moviepy.editor import *
 import pygame
@@ -155,19 +156,41 @@ def run_discord_bot():
         response = responses.get_weather(message)
         await interaction.response.defer(ephemeral=False)
         await interaction.followup.send("Nhiệt độ " + message + " đang là: " + str(response["main"]["temp"]) + "°C")
-    
-    # render table data
-    @client.tree.command(name="table", description="content")
-    async def table(interaction: discord.Interaction,*,message: str):
-        data = [("John", "Doe", 25), ("Jane", "Doe", 30), ("Bob", "Smith", 45)]
-        await interaction.response.defer(ephemeral=False)
-        table = "```\n"
-        table += "First Name | Last Name | Age\n"
-        table += "-----------|-----------|----\n"
-        for row in data:
-          table += "{:<11}|{:<11}|{}\n".format(row[0], row[1], row[2])
-        table += "```"
-        await interaction.followup.send(table)
+  
+    # get Todo list
+    @client.tree.command(name="todo", description="Get a list of tasks")
+    async def todo(interaction: discord.Interaction):
+      response = [
+          {
+              'date': '2023-04-15',
+              'list': [
+                  {'start': '08:00', 'task': 'Task 1'},
+                  {'start': '10:00', 'task': 'Task 2'}
+              ]
+          },
+          {
+              'date': '2023-04-14',
+              'list': [
+                  {'start': '09:00', 'task': 'Task 3'},
+                  {'start': '13:00', 'task': 'Task 4'}
+              ]
+          }
+      ]
+      headers = ['Date', 'Start Time', 'Task']
+      table = []
+      prev_date = ''
+      for response in response:
+        for idx, task in enumerate(response['list']):
+            date = response['date'] if idx == 0 else ''
+            if date == prev_date:
+                date = ''
+            else:
+                prev_date = date
+            table.append([date, task['start'], task['task']])
+      table_str = tabulate(table, headers=headers)
+      await interaction.response.defer(ephemeral=False)
+      await interaction.followup.send(f'```\n{table_str}\n```', ephemeral=False)
+
 
     #chức năng phát nhạc
     from discord.utils import get

@@ -24,3 +24,10 @@ def get_music(message):
   response = requests.get(f"https://youtube.googleapis.com/youtube/v3/search?part=snippet&q={message}&type=video&maxResults=1&key={youtube_key}") 
   response = response.json()
   return response
+
+# def get_todo_list(message):
+def get_todo_list():
+  # response = requests.get(f"url{message.user.id}")
+  response = requests.get(f"https://643a539490cd4ba563f71100.mockapi.io/todo")
+  response = response.json()
+  return response
