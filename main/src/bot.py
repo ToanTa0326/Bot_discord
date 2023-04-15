@@ -250,7 +250,7 @@ def run_discord_bot():
 
             # response = responses.get_music("Bài hát " + message)
             # songId = response['items'][0]['id']['videoId']
-            songId = 'IoP5ULA1tSQ'
+            songId = 'q-1FuU37zvA'
 
             # Nhập đường dẫn Youtube của bài hát
             url = f"https://www.youtube.com/watch?v={songId}"
@@ -266,7 +266,7 @@ def run_discord_bot():
 
             # tên file MP4 và MP3
             mp4_file = audio_file
-            mp3_file = "D:/Documents/nam_3_ki_2/lap_trinh_phython/BTL/main/src/music/song.mp3"
+            mp3_file = "D:/Documents/nam_3_ki_2/lap_trinh_phython/BTL_PY/main/src/music/song.mp3"
 
             # tạo đối tượng audio từ tệp MP4
             audio_clip = AudioFileClip(mp4_file)
@@ -327,6 +327,9 @@ def run_discord_bot():
         time_diff = math.fabs((alarm_time - now).total_seconds())
         info += "Đang chờ đợi %d giây cho đến khi báo thức kích hoạt..." % time_diff
 
+        if interaction.user.voice == None:
+            info += '\n' + "Bạn cần vào một voice channel để có thể đổ chuông thông báo tới mọi người!"
+
         await interaction.response.defer(ephemeral=False)
         await interaction.followup.send(info)
 
@@ -334,7 +337,22 @@ def run_discord_bot():
         time.sleep(time_diff)
 
         # Kích hoạt báo thức
-        await interaction.followup.send("Thức dậy! Đã đến giờ rồi!")
+        await interaction.followup.send(f"@everyoneThức dậy! Đã đến giờ rồi!")
+        if interaction.user.voice != None:
+            voice_channel = interaction.user.voice.channel
+            global vc_sleep
+            vc_sleep = await voice_channel.connect()
+            vc_sleep.play(discord.FFmpegOpusAudio('D:/Documents/nam_3_ki_2/lap_trinh_phython/BTL_PY/main/src/music/nhac_chuong_th0ng_bao.mp3'))
+
+    @client.tree.command(name='end_sleep', description="Tắt chuông thông báo")
+    async def end_sleep(interaction: discord.Interaction):
+        time.sleep(0)
+        vc_sleep.stop()
+        vc_sleep.client.clear
+        vc_sleep.channel.delete
+        await interaction.response.defer(ephemeral=False)
+        await interaction.followup.send('Chuông thông báo đã tắt')
+
 
     #chức năng nhúng chatGPT
     @client.tree.command(name="chat", description="Have a chat with ChatGPT")
