@@ -28,6 +28,32 @@ def is_valid_date(date_string):
     except ValueError:
         return False
 
+def is_valid_hour(hour_string):
+    pattern = r'^\d{2}:\d{2}$'
+    return bool(re.match(pattern, hour_string))
+
+def change_todo(method, data):
+    id = data.id
+    try:
+      date, start, task = data.message.split(',')
+      isValidDate = is_valid_date(date)
+      isValidHour = is_valid_date(start)
+      if(isValidDate==False):
+          responseMessage ="invalid date"
+      if(isValidHour==False): 
+          responseMessage += "invalid hour"
+      if(isValidHour and isValidDate):
+          response = responses[method]({
+            id,
+            date,
+            start,
+            task
+          })
+          responseMessage = response.message
+      return responseMessage
+    except:
+      return "Please enter input by format!"
+
 class aclient(commands.Bot):
     def __init__(self) -> None:
         intents = discord.Intents.default()
@@ -192,16 +218,12 @@ def run_discord_bot():
     # Create todo
     @client.tree.command(name="create_todo", description="Please enter: Date(DD/MM/YYYY),start(hh:mm),task(string)")
     async def create_todo(interaction: discord.Interaction, message: str):
-      responseMessage = ""
-      try: 
-        date, start, task = message.split(',')
-
-      except:
-        await interaction.response.defer(ephemeral=False)
-        await interaction.followup.send(f'invalid', ephemeral=False)
-        
-      print(date, start, task)
-      # response = responses.create_todo(interaction.user.id)
+      responseMessage = change_todo('create_todo', {
+        id: interaction.user.id,
+        message: message
+      })
+      await interaction.response.defer(ephemeral=False)
+      await interaction.followup.send(f"{responseMessage}")
 
 
     #chức năng phát nhạc
