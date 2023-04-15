@@ -8,6 +8,7 @@ openAI_key = os.getenv("OPENAI_KEY")
 openAI_model = os.getenv("ENGINE")
 weather_key = os.getenv("WEATHER_KEY")
 youtube_key = os.getenv("YOUTUBE_KEY")
+todo_url = os.getenv("TEST_TODO_URL")
 chatbot = AsyncChatbot(api_key=openAI_key, engine=openAI_model)
 
 async def handle_response(message) -> str:
@@ -25,9 +26,7 @@ def get_music(message):
   response = response.json()
   return response
 
-# def get_todo_list(message):
-def get_todo_list():
-  # response = requests.get(f"url{message.user.id}")
-  response = requests.get(f"https://643a539490cd4ba563f71100.mockapi.io/todo")
+def get_todo_list(message):
+  response = requests.get(f"{todo_url}{message.user.id}")
   response = response.json()
   return response
