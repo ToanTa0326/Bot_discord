@@ -41,7 +41,9 @@ def is_valid_hour(hour_string):
     return bool(re.match(pattern, hour_string))
 
 def change_todo(method, id, message):
-  inDate, inStart, inTask = message.split(',')
+  data = message.split(',')
+  if(len(data)>3): return "invalid format"
+  inDate, inStart, inTask = data
   isValidDate = is_valid_date(inDate)
   isValidHour = is_valid_hour(inStart)
   if(isValidDate==False):
@@ -62,7 +64,39 @@ def change_todo(method, id, message):
     responseMessage = response['msg']
     return responseMessage
     
+def delete_todo(userId, message):
+  data = message.split(',')
+  if(len(data)>2): return "invalid format"
+  inDate, inStart = data
+  isValidDate = is_valid_date(inDate)
+  isValidHour = is_valid_hour(inStart)
+  if(isValidDate==False):
+    return "invalid date"
+  if(isValidHour==False):
+    return "invalid hour"
+  if(isValidDate and isValidHour):
+    reqData = json.dumps({
+      "userId": f"{userId}",
+      "date": inDate,
+      "start": inStart
+    })
+    response = responses.delete_todo(reqData)
+    return response['msg']
 
+def delete_all_todo_by_date(userId, message):
+  data = message.split(',')
+  if(len(data)>1): return "invalid format"
+  inDate = data
+  isValidDate = is_valid_date(inDate)
+  if(isValidDate==False):
+    return "invalid date"
+  if(isValidDate):
+    reqData = json.dumps({
+      "userId": f"{userId}",
+      "date": inDate,
+    })
+    response = responses.delete_all_todo_by_date(reqData)
+    return response['msg']
 class aclient(commands.Bot):
     def __init__(self) -> None:
         intents = discord.Intents.default()
@@ -232,12 +266,18 @@ def run_discord_bot():
       await interaction.followup.send(f"{responseMessage}")
     
     # Delete todo
-    @client.tree.command(name="delete_todo", description="Please enter: Date(DD/MM/YYYY),start(hh:mm),task(string)")
-    async def delete_todo(interaction: discord.Interaction, message: str):
-      responseMessage = change_todo('delete_todo', interaction.user.id, message)
+    @client.tree.command(name="delete_todo", description="Please enter: Date(DD/MM/YYYY),start(hh:mm)")
+    async def delete_user_todo(interaction: discord.Interaction, message: str):
+      responseMessage = delete_todo(interaction.user.id, message)
       await interaction.response.defer(ephemeral=False)
       await interaction.followup.send(f"{responseMessage}")
-
+    
+    # Delete all todo of date
+    @client.tree.command(name="delete_all_todo_of_date", description="Please enter: Date(DD/MM/YYYY)")
+    async def delete_all_todo_of_date(interaction: discord.Interaction, message: str):
+      responseMessage = delete_all_todo_by_date(interaction.user.id, message)
+      await interaction.response.defer(ephemeral=False)
+      await interaction.followup.send(f"{responseMessage}")
 
     #chức năng phát nhạc
     from discord.utils import get

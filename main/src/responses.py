@@ -39,12 +39,12 @@ def create_todo(data):
 
 def delete_todo(data):
   headers = {'Content-Type': 'application/json'}
-  response = requests.post(todo_url, headers=headers, json=data)
+  response = requests.delete(f"{todo_url}/delete-task", headers=headers, json=data)
   response = response.json()
   return response
 
-def delete_all_by_date(data):
+def delete_all_todo_by_date(data):
   headers = {'Content-Type': 'application/json'}
-  response = requests.post(todo_url, headers=headers, json=data)
+  response = requests.delete(f"{todo_url}/delete-date", headers=headers, json=data)
   response = response.json()
   return response
