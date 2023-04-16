@@ -4,7 +4,6 @@ import discord
 import os
 from discord import app_commands
 from src import responses
-from src import log
 import requests
 from discord.ext import commands,tasks
 from datetime import datetime
@@ -15,9 +14,6 @@ import pygame
 from datetime import datetime
 import re
 import json
-
-
-logger = log.setup_logger(__name__)
 
 isPrivate = False
 isReplyAll = False
@@ -176,7 +172,6 @@ async def send_message(message, user_message):
             await message.channel.send("> **Error: Something went wrong, please try again later!**")
         else:
             await message.followup.send("> **Error: Something went wrong, please try again later!**")
-        logger.exception(f"Error while sending message: {e}")
 
 
 async def send_start_prompt(client):
@@ -186,23 +181,13 @@ async def send_start_prompt(client):
     prompt_name = 'starting-prompt.txt'
     prompt_path = os.path.join(config_dir, prompt_name)
     discord_channel_id = os.getenv("DISCORD_CHANNEL_ID")
-    try:
-        if os.path.isfile(prompt_path) and os.path.getsize(prompt_path) > 0:
-            with open(prompt_path, "r") as f:
-                prompt = f.read()
-                if (discord_channel_id):
-                    logger.info(f"Send starting prompt with size {len(prompt)}")
-                    responseMessage = await responses.handle_response(prompt)
-                    channel = client.get_channel(int(discord_channel_id))
-                    # await channel.send(responseMessage)
-                    logger.info(f"Starting prompt response:{responseMessage}")
-                else:
-                    logger.info("No Channel selected. Skip sending starting prompt.")
-        else:
-            logger.info(f"No {prompt_name}. Skip sending starting prompt.")
-    except Exception as e:
-        logger.exception(f"Error while sending starting prompt: {e}")
-
+    if os.path.isfile(prompt_path) and os.path.getsize(prompt_path) > 0:
+        with open(prompt_path, "r") as f:
+            prompt = f.read()
+            if (discord_channel_id):
+                responseMessage = await responses.handle_response(prompt)
+                channel = client.get_channel(int(discord_channel_id))
+                # await channel.send(responseMessage)
 
 def run_discord_bot():
     
@@ -212,7 +197,6 @@ def run_discord_bot():
     async def on_ready():
         await send_start_prompt(client)
         await client.tree.sync()
-        logger.info(f'{client.user} is now running!')
 
     #render ảnh ngẫu nhiên
     @client.tree.command(name="random_picture", description="picture")
@@ -255,28 +239,28 @@ def run_discord_bot():
                 prev_date = date
             table.append([date, task['start'], task['task']])
       table_str = tabulate(table, headers=headers)
-      await interaction.response.defer(ephemeral=False)
-      await interaction.followup.send(f'```\n{table_str}\n```', ephemeral=False)
+      await interaction.response.defer(ephemeral=True)
+      await interaction.followup.send(f'```\n{table_str}\n```')
     
     # Create todo
     @client.tree.command(name="create_todo", description="Please enter: Date(DD/MM/YYYY),start(hh:mm),task(string)")
     async def create_todo(interaction: discord.Interaction, message: str):
       responseMessage = change_todo('create_todo', interaction.user.id, message)
-      await interaction.response.defer(ephemeral=False)
+      await interaction.response.defer(ephemeral=True)
       await interaction.followup.send(f"{responseMessage}")
     
     # Delete todo
     @client.tree.command(name="delete_todo", description="Please enter: Date(DD/MM/YYYY),start(hh:mm)")
     async def delete_user_todo(interaction: discord.Interaction, message: str):
       responseMessage = delete_todo(interaction.user.id, message)
-      await interaction.response.defer(ephemeral=False)
+      await interaction.response.defer(ephemeral=True)
       await interaction.followup.send(f"{responseMessage}")
     
     # Delete all todo of date
     @client.tree.command(name="delete_all_todo_of_date", description="Please enter: Date(DD/MM/YYYY)")
     async def delete_all_todo_of_date(interaction: discord.Interaction, message: str):
       responseMessage = delete_all_todo_by_date(interaction.user.id, message)
-      await interaction.response.defer(ephemeral=False)
+      await interaction.response.defer(ephemeral=True)
       await interaction.followup.send(f"{responseMessage}")
 
     #chức năng phát nhạc
@@ -288,7 +272,7 @@ def run_discord_bot():
     async def sing(interaction: discord.Interaction,*, message: str):
 
         if interaction.user.voice == None:
-            await interaction.response.defer(ephemeral=False)
+            await interaction.response.defer(ephemeral=True)
             await interaction.followup.send("Bạn chưa join vào kênh voice nào")
         else:
             voice_channel= interaction.user.voice.channel
@@ -298,7 +282,7 @@ def run_discord_bot():
             if(not voice_client):
                 vc = await voice_channel.connect()
 
-            await interaction.response.defer(ephemeral=False)
+            await interaction.response.defer(ephemeral=True)
             await interaction.followup.send(f'Bài hát {message} đang phát...')
 
             # response = responses.get_music("Bài hát " + message)
@@ -338,13 +322,13 @@ def run_discord_bot():
     @client.tree.command(name='pause', description="tạm dừng phát bài hát hiện tại")
     async def pause(interaction: discord.Interaction):
         vc.pause()
-        await interaction.response.defer(ephemeral=False)
+        await interaction.response.defer(ephemeral=True)
         await interaction.followup.send("Tạm dừng phát bài hát hiện tại")
     
     @client.tree.command(name='unpause', description="tiếp tục phát bài hát hiện tại")
     async def unpause(interaction: discord.Interaction):
         vc.resume()
-        await interaction.response.defer(ephemeral=False)
+        await interaction.response.defer(ephemeral=True)
         await interaction.followup.send("Tiếp tục phát bài hát hiện tại")
 
     @client.tree.command(name='end_sing', description="Kết thúc bài hát hiện tại")
@@ -352,7 +336,7 @@ def run_discord_bot():
         vc.stop()
         vc.client.clear
         vc.channel.delete
-        await interaction.response.defer(ephemeral=False)
+        await interaction.response.defer(ephemeral=True)
         await interaction.followup.send('Bài hát hiện tại đã kết thúc')
     
     #chức năng sleep 
@@ -383,7 +367,7 @@ def run_discord_bot():
         if interaction.user.voice == None:
             info += '\n' + "Bạn cần vào một voice channel để có thể đổ chuông thông báo tới mọi người!"
 
-        await interaction.response.defer(ephemeral=False)
+        await interaction.response.defer(ephemeral=True)
         await interaction.followup.send(info)
 
         # Chờ đợi cho đến khi báo thức kích hoạt
@@ -395,7 +379,7 @@ def run_discord_bot():
             voice_channel = interaction.user.voice.channel
             global vc_sleep
             vc_sleep = await voice_channel.connect()
-            vc_sleep.play(discord.FFmpegOpusAudio('D:/Documents/nam_3_ki_2/lap_trinh_phython/BTL_PY/main/src/music/nhac_chuong_th0ng_bao.mp3'))
+            vc_sleep.play(discord.FFmpegOpusAudio('./music/nhac_chuong_th0ng_bao.mp3'))
 
     @client.tree.command(name='end_sleep', description="Tắt chuông thông báo")
     async def end_sleep(interaction: discord.Interaction):
@@ -403,7 +387,7 @@ def run_discord_bot():
         vc_sleep.stop()
         vc_sleep.client.clear
         vc_sleep.channel.delete
-        await interaction.response.defer(ephemeral=False)
+        await interaction.response.defer(ephemeral=True)
         await interaction.followup.send('Chuông thông báo đã tắt')
 
 
@@ -412,18 +396,13 @@ def run_discord_bot():
     async def chat(interaction: discord.Interaction, *, message: str):
         global isReplyAll
         if isReplyAll:
-            await interaction.response.defer(ephemeral=False)
+            await interaction.response.defer(ephemeral=True)
             await interaction.followup.send(
                 "> **Warn: You already on replyAll mode. If you want to use slash command, switch to normal mode, use `/replyall` again**")
-            logger.warning("\x1b[31mYou already on replyAll mode, can't use slash command!\x1b[0m")
             return
         if interaction.user == client.user:
             return
-        username = str(interaction.user)
         user_message = message
-        channel = str(interaction.channel)
-        logger.info(
-            f"\x1b[31m{username}\x1b[0m : '{user_message}' ({channel})")
         await send_message(interaction, user_message)
 
     @client.tree.command(name="private", description="Toggle private access")
@@ -432,11 +411,9 @@ def run_discord_bot():
         await interaction.response.defer(ephemeral=False)
         if not isPrivate:
             isPrivate = not isPrivate
-            logger.warning("\x1b[31mSwitch to private mode\x1b[0m")
             await interaction.followup.send(
                 "> **Info: Next, the response will be sent via private message. If you want to switch back to public mode, use `/public`**")
         else:
-            logger.info("You already on private mode!")
             await interaction.followup.send(
                 "> **Warn: You already on private mode. If you want to switch to public mode, use `/public`**")
 
@@ -448,11 +425,9 @@ def run_discord_bot():
             isPrivate = not isPrivate
             await interaction.followup.send(
                 "> **Info: Next, the response will be sent to the channel directly. If you want to switch back to private mode, use `/private`**")
-            logger.warning("\x1b[31mSwitch to public mode\x1b[0m")
         else:
             await interaction.followup.send(
                 "> **Warn: You already on public mode. If you want to switch to private mode, use `/private`**")
-            logger.info("You already on public mode!")
 
     @client.tree.command(name="replyall", description="Toggle replyAll access")
     async def replyall(interaction: discord.Interaction):
@@ -461,11 +436,9 @@ def run_discord_bot():
         if isReplyAll:
             await interaction.followup.send(
                 "> **Info: The bot will only response to the slash command `/chat` next. If you want to switch back to replyAll mode, use `/replyAll` again.**")
-            logger.warning("\x1b[31mSwitch to normal mode\x1b[0m")
         else:
             await interaction.followup.send(
                 "> **Info: Next, the bot will response to all message in the server. If you want to switch back to normal mode, use `/replyAll` again.**")
-            logger.warning("\x1b[31mSwitch to replyAll mode\x1b[0m")
         isReplyAll = not isReplyAll
             
     @client.tree.command(name="reset", description="Complete reset ChatGPT conversation history")
@@ -473,8 +446,6 @@ def run_discord_bot():
         responses.chatbot.reset()
         await interaction.response.defer(ephemeral=False)
         await interaction.followup.send("> **Info: I have forgotten everything.**")
-        logger.warning(
-            "\x1b[31mChatGPT bot has been successfully reset\x1b[0m")
         await send_start_prompt(client)
         
     @client.tree.command(name="help", description="Show help for the bot")
@@ -484,10 +455,7 @@ def run_discord_bot():
         - `/chat [message]` Chat with ChatGPT!
         - `/public` ChatGPT switch to public mode 
         - `/replyall` ChatGPT switch between replyall mode and default mode
-        - `/reset` Clear ChatGPT conversation history\n
-        For complete documentation, please visit https://github.com/Zero6992/chatGPT-discord-bot""")
-        logger.info(
-            "\x1b[31mSomeone need help!\x1b[0m")
+        - `/reset` Clear ChatGPT conversation history""")
 
     @client.event
     async def on_message(message):
@@ -495,10 +463,7 @@ def run_discord_bot():
             if message.author == client.user:
                 return
             print(message)
-            username = str(message.author)
             user_message = str(message.content)
-            channel = str(message.channel)
-            logger.info(f"\x1b[31m{username}\x1b[0m : '{user_message}' ({channel})")
             await send_message(message, user_message)
     
     TOKEN = os.getenv("DISCORD_BOT_TOKEN")
