@@ -14,12 +14,20 @@ from moviepy.editor import *
 import pygame
 from datetime import datetime
 import re
+import json
 
 
 logger = log.setup_logger(__name__)
 
 isPrivate = False
 isReplyAll = False
+
+class Todo_Data:
+    def __init__(self, userId, date, start, task) -> None:
+      self.userId = f"{userId}"
+      self.date = date
+      self.start = start
+      self.task = task
 
 def is_valid_date(date_string):
     try:
@@ -32,27 +40,28 @@ def is_valid_hour(hour_string):
     pattern = r'^\d{2}:\d{2}$'
     return bool(re.match(pattern, hour_string))
 
-def change_todo(method, data):
-    id = data.id
-    try:
-      date, start, task = data.message.split(',')
-      isValidDate = is_valid_date(date)
-      isValidHour = is_valid_date(start)
-      if(isValidDate==False):
-          responseMessage ="invalid date"
-      if(isValidHour==False): 
-          responseMessage += "invalid hour"
-      if(isValidHour and isValidDate):
-          response = responses[method]({
-            id,
-            date,
-            start,
-            task
-          })
-          responseMessage = response.message
-      return responseMessage
-    except:
-      return "Please enter input by format!"
+def change_todo(method, id, message):
+  inDate, inStart, inTask = message.split(',')
+  isValidDate = is_valid_date(inDate)
+  isValidHour = is_valid_hour(inStart)
+  if(isValidDate==False):
+    return "invalid date"
+  if(isValidHour==False): 
+    return "invalid hour"
+  if(isValidHour and isValidDate):
+    data = json.dumps({
+      "userId": f"{id}",
+      "date": f"{inDate}",
+      "start": f"{inStart}",
+      "task": f"{inTask}"
+    })
+    print(data)
+    func = getattr(responses, method)
+    response = func(data)
+    print(response)
+    responseMessage = response['msg']
+    return responseMessage
+    
 
 class aclient(commands.Bot):
     def __init__(self) -> None:
@@ -218,10 +227,14 @@ def run_discord_bot():
     # Create todo
     @client.tree.command(name="create_todo", description="Please enter: Date(DD/MM/YYYY),start(hh:mm),task(string)")
     async def create_todo(interaction: discord.Interaction, message: str):
-      responseMessage = change_todo('create_todo', {
-        id: interaction.user.id,
-        message: message
-      })
+      responseMessage = change_todo('create_todo', interaction.user.id, message)
+      await interaction.response.defer(ephemeral=False)
+      await interaction.followup.send(f"{responseMessage}")
+    
+    # Delete todo
+    @client.tree.command(name="delete_todo", description="Please enter: Date(DD/MM/YYYY),start(hh:mm),task(string)")
+    async def delete_todo(interaction: discord.Interaction, message: str):
+      responseMessage = change_todo('delete_todo', interaction.user.id, message)
       await interaction.response.defer(ephemeral=False)
       await interaction.followup.send(f"{responseMessage}")
 

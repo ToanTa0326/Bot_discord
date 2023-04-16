@@ -26,22 +26,25 @@ def get_music(message):
   response = response.json()
   return response
 
-def get_todo_list(params):
-  response = requests.get(todo_url, params)
+def get_todo_list(id):
+  response = requests.get(f"{todo_url}/get-list/{id}")
   response = response.json()
   return response
 
 def create_todo(data):
-  response = requests.post(todo_url, data)
+  headers = {'Content-Type': 'application/json'}
+  response = requests.post(todo_url, headers=headers, json=data)
   response = response.json()
   return response
 
-def edit_todo(data):
-  response = requests.put(todo_url, data)
+def delete_todo(data):
+  headers = {'Content-Type': 'application/json'}
+  response = requests.post(todo_url, headers=headers, json=data)
   response = response.json()
   return response
 
-def delete_todo(params):
-  response = requests.delete(todo_url, params)
+def delete_all_by_date(data):
+  headers = {'Content-Type': 'application/json'}
+  response = requests.post(todo_url, headers=headers, json=data)
   response = response.json()
   return response
