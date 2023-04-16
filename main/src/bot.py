@@ -217,7 +217,12 @@ def run_discord_bot():
     async def weather(interaction: discord.Interaction,*,message: str):
         response = responses.get_weather(message)
         await interaction.response.defer(ephemeral=False)
-        await interaction.followup.send("Nhiệt độ " + message + " đang là: " + str(response["main"]["temp"]) + "°C")
+        info = ''
+        info += "Nhiệt độ " + message + " đang là: " + str(response["main"]["temp"]) + " °C" + '\n'
+        info += "Độ ẩm " + message + " đang là: " + str(response["main"]["humidity"]) + " %" + '\n'
+        info += "Tốc độ gió " + message + " đang là: " + str(response["wind"]["speed"]) + " km/h" + '\n'
+        info += "Áp suất khí quyển " + message + " đang là: " + str(response["main"]["pressure"]) + " mb" + '\n'
+        await interaction.followup.send(info)
     
     @client.tree.command(name="test", description="Get a list of tasks")
     async def test(interaction: discord.Interaction):
