@@ -385,6 +385,7 @@ def run_discord_bot():
         await interaction.response.defer(ephemeral=False)
         await interaction.followup.send('Thông báo đã tắt')
 
+
     #chức năng nhúng chatGPT
     @client.tree.command(name="chat", description="Have a chat with ChatGPT")
     async def chat(interaction: discord.Interaction, *, message: str):
