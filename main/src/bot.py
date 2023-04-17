@@ -355,15 +355,15 @@ def run_discord_bot():
                 KT[0] = 0
                 
         global coro
-        coro = sleep_coroutine(10, KT)
+        coro = sleep_coroutine(time_diff, KT)
         await coro
     
         if KT[0] == 1:
             # Kích hoạt báo thức
-            await interaction.followup.send(f"@everyoneThức dậy! Đã đến giờ rồi!")
+            info = ''
+            info += "@everyoneThức dậy! Đã đến giờ rồi!"
             if interaction.user.voice == None:
-                await interaction.response.defer(ephemeral=False)
-                await interaction.followup.send("Bạn chưa join vào kênh voice nào")
+                info += '\n' + "Bạn chưa join vào kênh voice nào, thông báo sẽ không có âm thanh"
             else:
                 voice_channel= interaction.user.voice.channel
                 voice_client= interaction.guild.voice_client
@@ -372,8 +372,8 @@ def run_discord_bot():
                     vc = await voice_channel.connect()
                 vc.stop()
                 vc.play(discord.FFmpegOpusAudio('D:/Documents/nam_3_ki_2/lap_trinh_phython/BTL_PY/main/src/music/nhac_chuong_th0ng_bao.mp3'))
-        
-        
+        # await interaction.response.defer(ephemeral=False)
+        await interaction.followup.send(info)
 
     @client.tree.command(name='end_sleep', description="Tắt chuông thông báo")
     async def end_sleep(interaction: discord.Interaction):
@@ -384,7 +384,6 @@ def run_discord_bot():
             vc.stop()
         await interaction.response.defer(ephemeral=False)
         await interaction.followup.send('Thông báo đã tắt')
-
 
     #chức năng nhúng chatGPT
     @client.tree.command(name="chat", description="Have a chat with ChatGPT")
