@@ -355,7 +355,7 @@ def run_discord_bot():
                 KT[0] = 0
                 
         global coro
-        coro = sleep_coroutine(10, KT)
+        coro = sleep_coroutine(time_diff, KT)
         await coro
     
         if KT[0] == 1:
