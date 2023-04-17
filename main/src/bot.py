@@ -16,6 +16,7 @@ from datetime import datetime
 import re
 
 
+
 logger = log.setup_logger(__name__)
 
 isPrivate = False
@@ -170,6 +171,8 @@ def run_discord_bot():
         await send_start_prompt(client)
         await client.tree.sync()
         logger.info(f'{client.user} is now running!')
+        
+        
        
 
     #render ảnh ngẫu nhiên
@@ -244,19 +247,19 @@ def run_discord_bot():
             await interaction.response.defer(ephemeral=False)
             await interaction.followup.send("Bạn chưa join vào kênh voice nào")
         else:
+            
             voice_channel= interaction.user.voice.channel
             voice_client= interaction.guild.voice_client
-
-            global vc 
             if(not voice_client):
+                global vc
                 vc = await voice_channel.connect()
 
             await interaction.response.defer(ephemeral=False)
             await interaction.followup.send(f'Bài hát {message} đang phát...')
 
-            response = responses.get_music("Bài hát " + message)
-            songId = response['items'][0]['id']['videoId']
-            # songId = 'q-1FuU37zvA'
+            # response = responses.get_music("Bài hát " + message)
+            # songId = response['items'][0]['id']['videoId']
+            songId = 'q-1FuU37zvA'
 
             # Nhập đường dẫn Youtube của bài hát
             url = f"https://www.youtube.com/watch?v={songId}"
@@ -303,8 +306,6 @@ def run_discord_bot():
     @client.tree.command(name='end_sing', description="Kết thúc bài hát hiện tại")
     async def end_sing(interaction: discord.Interaction):
         vc.stop()
-        vc.client.clear()
-        vc.channel.delete()
         await interaction.response.defer(ephemeral=False)
         await interaction.followup.send('Bài hát hiện tại đã kết thúc')
     
@@ -342,50 +343,47 @@ def run_discord_bot():
         await interaction.response.defer(ephemeral=False)
         await interaction.followup.send(info)
 
+        global KT 
+        KT = [1]
         # Chờ đợi cho đến khi báo thức kích hoạt
-        async def sleep_coroutine(n):
+        async def sleep_coroutine(n, KT):
             if("vc" in globals()):
                 vc.stop()
-                vc.client.clear()
-                vc.channel.delete()
             try:
                 await asyncio.sleep(n)
             except asyncio.CancelledError:
-                print("Coroutine đã bị hủy bỏ")
+                KT[0] = 0
+                
         global coro
-        coro = sleep_coroutine(time_diff)
+        coro = sleep_coroutine(10, KT)
         await coro
-        # await asyncio.sleep(time_diff)
-
-        # Kích hoạt báo thức
-        await interaction.followup.send(f"@everyoneThức dậy! Đã đến giờ rồi!")
-
-        if interaction.user.voice == None:
-            await interaction.response.defer(ephemeral=False)
-            await interaction.followup.send("Bạn chưa join vào kênh voice nào")
-        else:
-            voice_channel= interaction.user.voice.channel
-            voice_client= interaction.guild.voice_client
-            global vc_sleep
-            if not voice_client:
-                vc_sleep = await voice_channel.connect()
-            vc_sleep.stop()
-            vc_sleep.play(discord.FFmpegOpusAudio('D:/Documents/nam_3_ki_2/lap_trinh_phython/BTL_PY/main/src/music/nhac_chuong_th0ng_bao.mp3'))
+    
+        if KT[0] == 1:
+            # Kích hoạt báo thức
+            await interaction.followup.send(f"@everyoneThức dậy! Đã đến giờ rồi!")
+            if interaction.user.voice == None:
+                await interaction.response.defer(ephemeral=False)
+                await interaction.followup.send("Bạn chưa join vào kênh voice nào")
+            else:
+                voice_channel= interaction.user.voice.channel
+                voice_client= interaction.guild.voice_client
+                if(not voice_client):
+                    global vc
+                    vc = await voice_channel.connect()
+                vc.stop()
+                vc.play(discord.FFmpegOpusAudio('D:/Documents/nam_3_ki_2/lap_trinh_phython/BTL_PY/main/src/music/nhac_chuong_th0ng_bao.mp3'))
         
         
 
     @client.tree.command(name='end_sleep', description="Tắt chuông thông báo")
     async def end_sleep(interaction: discord.Interaction):
-        if 'vc_sleep' in globals():
-            task = asyncio.create_task(coro)
-            task.cancel()
-            vc_sleep.stop()
-            vc_sleep.client.clear()
-            vc_sleep.channel.delete()
-        
+        task = asyncio.create_task(coro)
+        await asyncio.sleep(1)
+        task.cancel()
+        if("vc" in globals()):
+            vc.stop()
         await interaction.response.defer(ephemeral=False)
-        await interaction.followup.send('Chuông thông báo đã tắt')
-
+        await interaction.followup.send('Thông báo đã tắt')
 
     #chức năng nhúng chatGPT
     @client.tree.command(name="chat", description="Have a chat with ChatGPT")
