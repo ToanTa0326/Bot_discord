@@ -80,16 +80,13 @@ def delete_todo(userId, message):
     return response['msg']
 
 def delete_all_todo_by_date(userId, message):
-  data = message.split(',')
-  if(len(data)>1): return "invalid format"
-  inDate = data
-  isValidDate = is_valid_date(inDate)
+  isValidDate = is_valid_date(message)
   if(isValidDate==False):
     return "invalid date"
   if(isValidDate):
     reqData = json.dumps({
       "userId": f"{userId}",
-      "date": inDate,
+      "date": message,
     })
     response = responses.delete_all_todo_by_date(reqData)
     return response['msg']
@@ -235,14 +232,19 @@ def run_discord_bot():
       headers = ['Date', 'Start Time', 'Task']
       table = []
       prev_date = ''
-      for response in response:
-        for idx, task in enumerate(response['tasks']):
-            date = response['date'] if idx == 0 else ''
-            if date == prev_date:
-                date = ''
-            else:
-                prev_date = date
-            table.append([date, task['start'], task['task']])
+      try:
+        for response in response:
+          for idx, task in enumerate(response['tasks']):
+              date = response['date'] if idx == 0 else ''
+              if date == prev_date:
+                  date = ''
+              else:
+                  prev_date = date
+              table.append([date, task['start'], task['task']])
+      except:
+        await interaction.response.defer(ephemeral=True)
+        await interaction.followup.send(f'You do not have any to do')
+        return
       table_str = tabulate(table, headers=headers)
       await interaction.response.defer(ephemeral=True)
       await interaction.followup.send(f'```\n{table_str}\n```')

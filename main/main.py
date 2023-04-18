@@ -4,10 +4,7 @@ import sys
 
 def check_verion() -> None:
     import pkg_resources
-    import src.log
-
     load_dotenv()
-    logger = src.log.setup_logger(__name__)
 
     # Read the requirements.txt file and add each line to a list
     with open('requirements.txt') as f:
@@ -22,7 +19,6 @@ def check_verion() -> None:
         name, version = installed.project_name, installed.version
         # Compare the version number to see if it matches the one in requirements.txt
         if package != f'{name}=={version}':
-            logger.error(f'{name} version {version} is installed but does not match the requirements')
             sys.exit()
 # test123
 if __name__ == '__main__': 
