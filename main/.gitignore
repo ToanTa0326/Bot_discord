@@ -69,7 +69,7 @@ instance/
 
 # Scrapy stuff:
 .scrapy
-
+__/__pycache__
 # Sphinx documentation
 docs/_build/
 

@@ -14,6 +14,37 @@ import pygame
 from datetime import datetime
 import re
 import json
+import asyncio
+import aiohttp
+
+todo_url = os.getenv("TEST_TODO_URL")
+intents = discord.Intents.default()
+intents.members = True
+client = discord.Client(intents=intents)
+TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+client.run(TOKEN)
+
+async def make_request():
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f'{todo_url}/get-notification') as response:
+            data = await response.json()
+            print(data)
+            for resUser in data:
+                user_id = resUser['userId']
+                try:
+                    user = await client.fetch_user(int(user_id)) # await the promise
+                    await user.send(resUser['task'])
+                except Exception as e: # handle any errors
+                    print(f"Error while sending message to {user_id}: {e}")
+
+async def start_requests():
+    while True:
+        await make_request()
+        await asyncio.sleep(10)
+
+@client.event
+async def on_ready():
+    client.loop.create_task(make_request())
 
 isPrivate = False
 isReplyAll = False
@@ -32,9 +63,12 @@ def is_valid_date(date_string):
     except ValueError:
         return False
 
-def is_valid_hour(hour_string):
-    pattern = r'^\d{2}:\d{2}$'
-    return bool(re.match(pattern, hour_string))
+def is_valid_hour(hour):
+    try:
+        datetime.strptime(hour, '%H:%M')
+        return True
+    except ValueError:
+        return False
 
 def change_todo(method, id, message):
   data = message.split(',')
@@ -292,9 +326,9 @@ def run_discord_bot():
             await interaction.response.defer(ephemeral=False)
             await interaction.followup.send(f'Bài hát {message} đang phát...')
 
-            # response = responses.get_music("Bài hát " + message)
-            # songId = response['items'][0]['id']['videoId']
-            songId = 'q-1FuU37zvA'
+            response = responses.get_music("Bài hát " + message)
+            songId = response['items'][0]['id']['videoId']
+            # songId = 'q-1FuU37zvA'
 
             # Nhập đường dẫn Youtube của bài hát
             url = f"https://www.youtube.com/watch?v={songId}"
@@ -310,7 +344,7 @@ def run_discord_bot():
 
             # tên file MP4 và MP3
             mp4_file = audio_file
-            mp3_file = "D:/Documents/nam_3_ki_2/lap_trinh_phython/BTL_PY/main/src/music/song.mp3"
+            mp3_file = "A:/Workspace/Bot_discord/main/src/music/song.mp3"
 
             # tạo đối tượng audio từ tệp MP4
             audio_clip = AudioFileClip(mp4_file)
@@ -406,7 +440,7 @@ def run_discord_bot():
                     global vc
                     vc = await voice_channel.connect()
                 vc.stop()
-                vc.play(discord.FFmpegOpusAudio('D:/Documents/nam_3_ki_2/lap_trinh_phython/BTL_PY/main/src/music/nhac_chuong_th0ng_bao.mp3'))
+                vc.play(discord.FFmpegOpusAudio('A:/Workspace/Bot_discord/main/src/music/nhac_chuong_th0ng_bao.mp3'))
 
     @client.tree.command(name='end_sleep', description="Tắt chuông thông báo")
     async def end_sleep(interaction: discord.Interaction):
@@ -493,7 +527,3 @@ def run_discord_bot():
             print(message)
             user_message = str(message.content)
             await send_message(message, user_message)
-    
-    TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-
-    client.run(TOKEN)
