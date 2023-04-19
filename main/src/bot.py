@@ -502,10 +502,29 @@ def run_discord_bot():
     async def help(interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=False)
         await interaction.followup.send(""":star:**BASIC COMMANDS** \n
+        **GPT commands**
         - `/chat [message]` Chat with ChatGPT!
         - `/public` ChatGPT switch to public mode 
         - `/replyall` ChatGPT switch between replyall mode and default mode
-        - `/reset` Clear ChatGPT conversation history""")
+        - `/reset` Clear ChatGPT conversation history
+        \n**Todo list commands**
+        - `/todo` List tasks you need to do
+        - `/create_todo [date,time start,task]` Create what and when you want to do
+        - `/delete_todo [date,time start]` Delete the task which you have created before
+        - `/delete_all_todo_of_date [date]` Delete all task in a date which you have created before
+        \n**Sleep commands**
+        - `/sleep [time]` Set up time schedule you want to wake up
+          the ring will turn on in time  
+        - `/end_sleep` cancel time schedule and turn off the ring
+        \n**Music commands**
+        - `/sing [song name]` download and play the song you want
+        - `/pause` pause the playing song
+        - `/unpause` continue the playing song
+        - `/end_sing` the playing song end
+        \n**Another future commands**
+        - `/weather [location name]` get the weather now in that location
+        \n**Joinful!**
+        """)
 
     @client.event
     async def on_message(message):
