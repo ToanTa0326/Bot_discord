@@ -17,35 +17,6 @@ import json
 import asyncio
 import aiohttp
 
-todo_url = os.getenv("TEST_TODO_URL")
-intents = discord.Intents.default()
-intents.members = True
-client = discord.Client(intents=intents)
-TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-client.run(TOKEN)
-
-async def make_request():
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f'{todo_url}/get-notification') as response:
-            data = await response.json()
-            print(data)
-            for resUser in data:
-                user_id = resUser['userId']
-                try:
-                    user = await client.fetch_user(int(user_id)) # await the promise
-                    await user.send(resUser['task'])
-                except Exception as e: # handle any errors
-                    print(f"Error while sending message to {user_id}: {e}")
-
-async def start_requests():
-    while True:
-        await make_request()
-        await asyncio.sleep(10)
-
-@client.event
-async def on_ready():
-    client.loop.create_task(make_request())
-
 isPrivate = False
 isReplyAll = False
 
@@ -223,9 +194,26 @@ async def send_start_prompt(client):
 def run_discord_bot():
     
     client = aclient()
-    
+
+    todo_url = os.getenv("TEST_TODO_URL")
+
+    @tasks.loop(seconds=10) 
+    async def make_request():
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f'{todo_url}/get-notification') as response:
+                data = await response.json()
+                print(data)
+                for resUser in data:
+                    user_id = resUser['userId']
+                    try:
+                        user = await client.fetch_user(int(user_id)) 
+                        await user.send(f"Bạn có một việc trong danh sách ({resUser['task']}) ngay lúc này.")
+                    except Exception as e: 
+                        print(e)
+
     @client.event
     async def on_ready():
+        make_request.start() 
         await send_start_prompt(client)
         await client.tree.sync()
 
@@ -527,3 +515,5 @@ def run_discord_bot():
             print(message)
             user_message = str(message.content)
             await send_message(message, user_message)
+    TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+    client.run(TOKEN)
