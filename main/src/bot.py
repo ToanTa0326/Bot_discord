@@ -189,7 +189,7 @@ async def send_start_prompt(client):
             if (discord_channel_id):
                 responseMessage = await responses.handle_response(prompt)
                 channel = client.get_channel(int(discord_channel_id))
-                # await channel.send(responseMessage)
+                await channel.send(responseMessage)
 
 def run_discord_bot():
     
